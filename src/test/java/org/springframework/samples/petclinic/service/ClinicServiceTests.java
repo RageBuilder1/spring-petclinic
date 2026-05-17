@@ -86,11 +86,11 @@ class ClinicServiceTests {
 
 	@Test
 	void shouldFindOwnersByLastName() {
-		Page<Owner> owners = this.owners.findByLastNameStartingWith("Davis", pageable);
-		assertThat(owners).hasSize(2);
+		Page<Owner> foundOwners = this.owners.findByLastNameStartingWith("Davis", pageable);
+		assertThat(foundOwners).hasSize(2);
 
-		owners = this.owners.findByLastNameStartingWith("Daviss", pageable);
-		assertThat(owners).isEmpty();
+		foundOwners = this.owners.findByLastNameStartingWith("Daviss", pageable);
+		assertThat(foundOwners).isEmpty();
 	}
 
 	@Test
@@ -107,8 +107,8 @@ class ClinicServiceTests {
 	@Test
 	@Transactional
 	void shouldInsertOwner() {
-		Page<Owner> owners = this.owners.findByLastNameStartingWith("Schultz", pageable);
-		int found = (int) owners.getTotalElements();
+		Page<Owner> ownersAfterInsert = this.owners.findByLastNameStartingWith("Schultz", pageable);
+		int found = (int) ownersAfterInsert.getTotalElements();
 
 		Owner owner = new Owner();
 		owner.setFirstName("Sam");
@@ -119,8 +119,8 @@ class ClinicServiceTests {
 		this.owners.save(owner);
 		assertThat(owner.getId()).isNotZero();
 
-		owners = this.owners.findByLastNameStartingWith("Schultz", pageable);
-		assertThat(owners.getTotalElements()).isEqualTo(found + 1);
+		ownersAfterInsert = this.owners.findByLastNameStartingWith("Schultz", pageable);
+		assertThat(ownersAfterInsert.getTotalElements()).isEqualTo(found + 1);
 	}
 
 	@Test
@@ -163,8 +163,8 @@ class ClinicServiceTests {
 
 		Pet pet = new Pet();
 		pet.setName("bowser");
-		Collection<PetType> types = this.types.findPetTypes();
-		pet.setType(EntityUtils.getById(types, PetType.class, 2));
+		Collection<PetType> petTypes = this.types.findPetTypes();
+		pet.setType(EntityUtils.getById(petTypes, PetType.class, 2));
 		pet.setBirthDate(LocalDate.now());
 		owner6.addPet(pet);
 		assertThat(owner6.getPets()).hasSize(found + 1);
@@ -203,9 +203,9 @@ class ClinicServiceTests {
 
 	@Test
 	void shouldFindVets() {
-		Collection<Vet> vets = this.vets.findAll();
+		Collection<Vet> vetList = this.vets.findAll();
 
-		Vet vet = EntityUtils.getById(vets, Vet.class, 3);
+		Vet vet = EntityUtils.getById(vetList, Vet.class, 3);
 		assertThat(vet.getLastName()).isEqualTo("Douglas");
 		assertThat(vet.getNrOfSpecialties()).isEqualTo(2);
 		assertThat(vet.getSpecialties().get(0).getName()).isEqualTo("dentistry");
