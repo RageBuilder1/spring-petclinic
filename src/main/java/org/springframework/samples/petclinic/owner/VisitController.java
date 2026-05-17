@@ -31,6 +31,15 @@ import jakarta.validation.Valid;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
+ * Spring MVC controller that handles all HTTP-facing visit operations for a
+ * specific pet belonging to a specific owner in the PetClinic application.
+ *
+ * <p>
+ * Acts as part of the service/business-logic layer by translating web requests
+ * into operations on the {@link OwnerRepository}, applying validation, and
+ * selecting the appropriate Thymeleaf view. The single supported flow is
+ * booking a new visit for an existing pet.
+ *
  * @author Juergen Hoeller
  * @author Ken Krebs
  * @author Arjen Poutsma
@@ -47,17 +56,30 @@ class VisitController {
 		this.owners = owners;
 	}
 
+	/**
+	 * Restricts which fields may be bound from incoming requests. The
+	 * {@code id} fields are disallowed so that callers cannot overwrite the
+	 * primary key of a visit (or any nested entity) through form submission.
+	 * @param dataBinder the binder used for the current request
+	 */
 	@InitBinder
 	public void setAllowedFields(WebDataBinder dataBinder) {
 		dataBinder.setDisallowedFields("id", "*.id");
 	}
 
 	/**
-	 * Called before each and every @RequestMapping annotated method. 2 goals: - Make sure
-	 * we always have fresh data - Since we do not use the session scope, make sure that
-	 * Pet object always has an id (Even though id is not part of the form fields)
-	 * @param petId
-	 * @return Pet
+	 * Resolves the {@link Visit} model attribute used by the new-visit form,
+	 * and populates the request model with the owning {@link Owner} and
+	 * {@link Pet}. Called before each request-mapped method so that data is
+	 * always loaded fresh and the {@code Pet} reference retains its id even
+	 * though id is not bound from form fields.
+	 * @param ownerId the id of the owning {@link Owner}
+	 * @param petId the id of the {@link Pet} the visit is being recorded for
+	 * @param model the request model into which {@code owner} and {@code pet}
+	 * are placed for the view
+	 * @return a new, unsaved {@link Visit} associated with the resolved pet
+	 * @throws IllegalArgumentException if no owner matches {@code ownerId} or
+	 * the owner has no pet with {@code petId}
 	 */
 	@ModelAttribute("visit")
 	public Visit loadPetWithVisit(@PathVariable("ownerId") int ownerId, @PathVariable("petId") int petId,
@@ -79,15 +101,31 @@ class VisitController {
 		return visit;
 	}
 
-	// Spring MVC calls method loadPetWithVisit(...) before initNewVisitForm is
-	// called
+	/**
+	 * Renders the empty form used to record a new visit for an existing pet.
+	 * Spring MVC invokes {@link #loadPetWithVisit(int, int, Map)} first, so
+	 * the {@code visit}, {@code pet}, and {@code owner} model attributes are
+	 * already populated when this method runs.
+	 * @return the logical view name of the new-visit form
+	 */
 	@GetMapping("/owners/{ownerId}/pets/{petId}/visits/new")
 	public String initNewVisitForm() {
 		return "pets/createOrUpdateVisitForm";
 	}
 
-	// Spring MVC calls method loadPetWithVisit(...) before processNewVisitForm is
-	// called
+	/**
+	 * Persists a new visit submitted from the new-visit form. Spring MVC
+	 * invokes {@link #loadPetWithVisit(int, int, Map)} first so the owner and
+	 * pet are already resolved. On validation failure the form is
+	 * redisplayed; on success the owner's details page is shown with a
+	 * confirmation flash message.
+	 * @param owner the owning {@link Owner} resolved from the URL path
+	 * @param petId the id of the {@link Pet} the visit belongs to
+	 * @param visit the bound visit to validate and save
+	 * @param result the binding result holding any validation errors
+	 * @param redirectAttributes used to carry flash messages across redirects
+	 * @return the logical view name or redirect target
+	 */
 	@PostMapping("/owners/{ownerId}/pets/{petId}/visits/new")
 	public String processNewVisitForm(@ModelAttribute Owner owner, @PathVariable int petId, @Valid Visit visit,
 			BindingResult result, RedirectAttributes redirectAttributes) {
