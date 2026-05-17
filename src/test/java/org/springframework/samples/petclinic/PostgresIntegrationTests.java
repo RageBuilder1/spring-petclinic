@@ -28,6 +28,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationContext;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -79,9 +80,10 @@ public class PostgresIntegrationTests {
 	}
 
 	@Test
-	void findAll() throws Exception {
+	void findAll(ApplicationContext context) throws Exception {
 		vets.findAll();
 		vets.findAll(); // served from cache
+		assertThat(context).isNotNull();
 	}
 
 	@Test
