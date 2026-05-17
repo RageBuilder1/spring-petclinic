@@ -21,7 +21,6 @@ import static org.mockito.BDDMockito.given;
 
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
@@ -77,7 +76,7 @@ class PetTypeFormatterTests {
 
 	/**
 	 * Helper method to produce some sample pet types just for test purpose
-	 * @return {@link Collection} of {@link PetType}
+	 * @return {@link List} of {@link PetType}
 	 */
 	private List<PetType> makePetTypes() {
 		List<PetType> petTypes = new ArrayList<>();
